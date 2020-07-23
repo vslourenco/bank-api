@@ -7,12 +7,14 @@ use App\Models\Transaction;
 use Exception;
 use Illuminate\Http\Request;
 
+define("INPUT", "I");
+define("OUTPUT", "O");
 class TransactionController extends Controller
 {
     public function deposit(Request $request)
     {        
         $data = $request->all();
-        $data['type'] = "I";
+        $data['type'] = INPUT;
         $data['amount'] = abs($data['amount']);
         return $this->accomplish($data);       
     }
@@ -20,7 +22,7 @@ class TransactionController extends Controller
     public function withdraw(Request $request)
     {        
         $data = $request->all();        
-        $data['type'] = "O";
+        $data['type'] = OUTPUT;
         $data['amount'] = abs($data['amount'])*-1;
         return $this->accomplish($data);       
     }
@@ -29,13 +31,9 @@ class TransactionController extends Controller
     {
         try
         {
-            if (!Account::find($data['account_id'])) 
-            {
-                return response()->json(['error'=>'Conta não encontrada'], 404);
-            }
-
+            Account::findOrFail($data['account_id']); 
             $balance = Transaction::where('account_id', $data['account_id'])->sum('amount');
-            if($data['type'] === "O" && $balance<abs($data['amount']))
+            if($data['type'] === OUTPUT && $balance<abs($data['amount']))
             {
                 return response()->json(['error'=> 'Saldo insuficiente'], 403);
             }
@@ -45,7 +43,7 @@ class TransactionController extends Controller
         }
         catch(Exception $e)
         {
-            return response()->json(['error'=> 'Operação não realizada'], 500);
+            return response()->json(['error'=>'Conta não encontrada'], 404);
         }
     }
 }

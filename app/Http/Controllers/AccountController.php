@@ -14,14 +14,12 @@ class AccountController extends Controller
     }
 
     public function balance($id)
-    {        
-        if(Account::find($id))
-        {
+    {       
+        try {
+            Account::findOrFail($id); 
             $balance = Transaction::where('account_id', $id)->sum('amount');
             return response()->json(['balance'=>$balance]);
-        }
-        else
-        {
+        } catch (\Exception $e) {
             return response()->json(['error'=>'Conta não encontrada'], 404);
         }
 
